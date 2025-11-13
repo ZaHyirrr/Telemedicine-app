@@ -116,41 +116,46 @@ export async function getPatientAppointments({
 
     const [data, totalRecord] = await Promise.all([
       db.appointment.findMany({
-        where: buildQuery(id, search),
-        skip: SKIP,
-        take: LIMIT,
-        select: {
-          id: true,
-          patient_id: true,
-          doctor_id: true,
-          type: true,
-          appointment_date: true,
-          time: true,
-          status: true,
-          patient: {
-            select: {
-              id: true,
-              first_name: true,
-              last_name: true,
-              phone: true,
-              gender: true,
-              img: true,
-              date_of_birth: true,
-              colorCode: true,
-            },
-          },
-          doctor: {
-            select: {
-              id: true,
-              name: true,
-              specialization: true,
-              colorCode: true,
-              img: true,
-            },
-          },
-        },
-        orderBy: { appointment_date: "desc" },
-      }),
+  where: buildQuery(id, search),
+  skip: SKIP,
+  take: LIMIT,
+  select: {
+    id: true,
+    patient_id: true,
+    doctor_id: true,
+    type: true,
+    appointment_date: true,
+    time: true,
+    status: true,
+
+    // ✅ Thêm dòng này
+    video_link: true,
+
+    patient: {
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        phone: true,
+        gender: true,
+        img: true,
+        date_of_birth: true,
+        colorCode: true,
+      },
+    },
+    doctor: {
+      select: {
+        id: true,
+        name: true,
+        specialization: true,
+        colorCode: true,
+        img: true,
+      },
+    },
+  },
+  orderBy: { appointment_date: "desc" },
+}),
+
       db.appointment.count({
         where: buildQuery(id, search),
       }),

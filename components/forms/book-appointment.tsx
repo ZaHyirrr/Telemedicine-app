@@ -53,10 +53,10 @@ export const BookAppointment = ({
   data: Patient;
   doctors: Doctor[];
 }) => {
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const [physicians, setPhysicians] = useState<Doctor[] | undefined>(doctors);
+  const [physicians] = useState<Doctor[]>(doctors);
 
   const appointmentTimes = generateTimes(8, 17, 30);
 
@@ -73,20 +73,26 @@ export const BookAppointment = ({
     },
   });
 
+  /* ✅ FIXED SUBMIT - HANDLE DOUBLE BOOKING */
   const onSubmit: SubmitHandler<z.infer<typeof AppointmentSchema>> = async (
     values
   ) => {
     try {
       setIsSubmitting(true);
+
       const newData = { ...values, patient_id: data?.id! };
 
       const res = await createNewAppointment(newData);
 
-      if (res.success) {
-        form.reset({});
-        router.refresh();
-        toast.success("Appointment created successfully");
+      if (!res.success) {
+        toast.error(res.msg); // ✅ Show lỗi từ backend (double booking, doctor busy, invalid...)
+        setIsSubmitting(false);
+        return;
       }
+
+      toast.success(res.message || "Appointment created successfully");
+      form.reset();
+      router.refresh();
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong. Try again later.");
@@ -122,6 +128,7 @@ export const BookAppointment = ({
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-8 mt-5 2xl:mt-10"
               >
+                {/* ✅ Patient Box */}
                 <div className="w-full rounded-md border border-input bg-background px-3 py-1 flex items-center gap-4">
                   <ProfileImage
                     url={data?.img!}
@@ -129,7 +136,6 @@ export const BookAppointment = ({
                     className="size-16 border border-input"
                     bgColor={data?.colorCode!}
                   />
-
                   <div>
                     <p className="font-semibold text-lg">{patientName}</p>
                     <span className="text-sm text-gray-500 capitalize">
@@ -138,6 +144,7 @@ export const BookAppointment = ({
                   </div>
                 </div>
 
+                {/* TYPE */}
                 <CustomInput
                   type="select"
                   selectList={TYPES}
@@ -147,6 +154,7 @@ export const BookAppointment = ({
                   placeholder="Select a appointment type"
                 />
 
+                {/* DOCTOR */}
                 <FormField
                   control={form.control}
                   name="doctor_id"
@@ -163,9 +171,9 @@ export const BookAppointment = ({
                             <SelectValue placeholder="Select a physician" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="">
-                          {physicians?.map((i, id) => (
-                            <SelectItem key={id} value={i.id} className="p-2">
+                        <SelectContent>
+                          {physicians?.map((i) => (
+                            <SelectItem key={i.id} value={i.id} className="p-2">
                               <div className="flex flex-row gap-2 p-2">
                                 <ProfileImage
                                   url={i?.img!}
@@ -191,25 +199,27 @@ export const BookAppointment = ({
                   )}
                 />
 
+                {/* DATE + TIME */}
                 <div className="flex items-center gap-2">
                   <CustomInput
                     type="input"
                     control={form.control}
                     name="appointment_date"
-                    placeholder=""
                     label="Date"
                     inputType="date"
                   />
+
                   <CustomInput
                     type="select"
                     control={form.control}
                     name="time"
-                    placeholder="Select time"
                     label="Time"
+                    placeholder="Select time"
                     selectList={appointmentTimes}
                   />
                 </div>
 
+                {/* NOTE */}
                 <CustomInput
                   type="textarea"
                   control={form.control}

@@ -67,7 +67,7 @@ const AppointmentQuickLinks = async ({ staffId }: { staffId: string }) => {
           Vital Signs
         </Link>
 
-        {!isPatient && <ReviewForm staffId={staffId} />}
+        {isPatient && <ReviewForm staffId={staffId} />}
       </CardContent>
     </Card>
   );

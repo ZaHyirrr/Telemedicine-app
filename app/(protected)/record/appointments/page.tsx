@@ -14,41 +14,26 @@ import { BriefcaseBusiness } from "lucide-react";
 import React from "react";
 import { Pagination } from "@/components/pagination";
 import { AppointmentContainer } from "@/components/appointment-container";
+
+// ✅ ADD COLUMN VIDEO HERE
 const columns = [
-  {
-    header: "Info",
-    key: "name",
-  },
-  {
-    header: "Date",
-    key: "appointment_date",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Time",
-    key: "time",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Doctor",
-    key: "doctor",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Status",
-    key: "status",
-    className: "hidden xl:table-cell",
-  },
-  {
-    header: "Actions",
-    key: "action",
-  },
+  { header: "Info", key: "name" },
+  { header: "Date", key: "appointment_date", className: "hidden md:table-cell" },
+  { header: "Time", key: "time", className: "hidden md:table-cell" },
+  { header: "Doctor", key: "doctor", className: "hidden md:table-cell" },
+  { header: "Status", key: "status", className: "hidden xl:table-cell" },
+
+  // ✅ NEW COLUMN (Video)
+  { header: "Video", key: "video", className: "hidden lg:table-cell text-center" },
+
+  { header: "Actions", key: "action" },
 ];
 
 interface DataProps extends Appointment {
   patient: Patient;
   doctor: Doctor;
 }
+
 const Appointments = async (props: {
   searchParams?: Promise<{ [key: string]: string | undefined }>;
 }) => {
@@ -92,6 +77,7 @@ const Appointments = async (props: {
         key={item?.id}
         className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-slate-50"
       >
+        {/* INFO */}
         <td className="flex items-center gap-2 md:gap-4 py-2 xl:py-4">
           <ProfileImage
             url={item?.patient?.img!}
@@ -106,20 +92,23 @@ const Appointments = async (props: {
           </div>
         </td>
 
+        {/* DATE */}
         <td className="hidden md:table-cell">
           {format(item?.appointment_date, "yyyy-MM-dd")}
         </td>
+
+        {/* TIME */}
         <td className="hidden md:table-cell">{item.time}</td>
 
-        <td className="hidden  items-center py-2  md:table-cell">
-          <div className="flex items-center  gap-2 md:gap-4">
+        {/* DOCTOR */}
+        <td className="hidden md:table-cell">
+          <div className="flex items-center gap-2 md:gap-4">
             <ProfileImage
               url={item.doctor?.img!}
               name={item.doctor?.name}
               bgColor={item?.doctor?.colorCode!}
               textClassName="text-black"
             />
-
             <div>
               <h3 className="font-semibold uppercase">{item.doctor?.name}</h3>
               <span className="text-xs md:text-sm capitalize">
@@ -129,9 +118,27 @@ const Appointments = async (props: {
           </div>
         </td>
 
+        {/* STATUS */}
         <td className="hidden xl:table-cell">
           <AppointmentStatusIndicator status={item.status!} />
         </td>
+
+        {/* ✅ NEW VIDEO COLUMN */}
+        <td className="hidden lg:table-cell text-center">
+          {item.video_link && item.status === "SCHEDULED" ? (
+            <a
+              href={`/video?url=${encodeURIComponent(item.video_link)}`}
+              target="_blank"
+              className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-xs"
+            >
+              Join
+            </a>
+          ) : (
+            <span className="text-gray-400 text-xs">—</span>
+          )}
+        </td>
+
+        {/* ACTIONS */}
         <td>
           <div className="flex items-center gap-2">
             <ViewAppointment id={item?.id.toString()} />
@@ -161,7 +168,6 @@ const Appointments = async (props: {
 
         <div className="w-full lg:w-fit flex items-center justify-between lg:justify-start gap-2">
           <SearchInput />
-
           {isPatient && <AppointmentContainer id={userId!} />}
         </div>
       </div>

@@ -57,7 +57,7 @@ export const AppointmentActionDialog = ({
         toast.success(resp.msg);
         setReason("");
         router.refresh();
-      } else if (resp.error) {
+      } else {
         toast.error(resp.msg);
       }
     } catch (error) {

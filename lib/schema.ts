@@ -191,3 +191,4 @@ export const ServicesSchema = z.object({
   price: z.string({ message: "Service price is required" }),
   description: z.string({ message: "Service description is required" }),
 });
+

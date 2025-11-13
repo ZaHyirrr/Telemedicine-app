@@ -46,7 +46,17 @@ export async function getMedicalRecords({
               gender: true,
             },
           },
-
+          appointment: {
+            include:{doctor: {                            
+            select: {
+            name: true,
+            specialization: true,
+            img: true,
+            colorCode: true,
+            },
+          },}
+          },
+          
           diagnosis: {
             include: {
               doctor: {
@@ -58,16 +68,18 @@ export async function getMedicalRecords({
                 },
               },
             },
+            orderBy: { created_at: 'desc' },  // ✅ diagnosis mới nhất
+            take: 1,  
           },
-          lab_test: true,
+           _count: {
+            select: { diagnosis: true },
+          },
         },
         skip: SKIP,
         take: LIMIT,
         orderBy: { created_at: "desc" },
       }),
-      db.medicalRecords.count({
-        where,
-      }),
+      db.medicalRecords.count({where,}),
     ]);
 
     const totalPages = Math.ceil(totalRecords / LIMIT);

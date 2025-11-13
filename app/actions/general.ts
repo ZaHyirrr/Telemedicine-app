@@ -1,46 +1,62 @@
 "use server";
 
-import {
-  ReviewFormValues,
-  reviewSchema,
-} from "@/components/dialogs/review-form";
 import db from "@/lib/db";
 import { clerkClient } from "@clerk/nextjs/server";
 
+// IMPORT ĐÚNG — NHỚ SỬA LẠI ĐƯỜNG DẪN NÀY
+import {
+  reviewSchema,
+  ReviewFormValues,
+} from "@/app/lib/validations/review";
+
 export async function deleteDataById(
   id: string,
-
-  deleteType: "doctor" | "staff" | "patient" | "payment" | "bill"
+  deleteType: "doctor" | "staff" | "patient" | "payment" | "bill" | "medical"
 ) {
   try {
-    switch (deleteType) {
-      case "doctor":
-        await db.doctor.delete({ where: { id: id } });
-      case "staff":
-        await db.staff.delete({ where: { id: id } });
-      case "patient":
-        await db.patient.delete({ where: { id: id } });
-      case "payment":
-        await db.payment.delete({ where: { id: Number(id) } });
+
+    if (deleteType === "doctor" || deleteType === "staff" || deleteType === "patient") {
+      await fetch(`https://api.clerk.dev/v1/users/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+        },
+      });
     }
 
-    if (
-      deleteType === "staff" ||
-      deleteType === "patient" ||
-      deleteType === "doctor"
-    ) {
-      const client = await clerkClient();
-      await client.users.deleteUser(id);
+    if (deleteType === "doctor") {
+      await db.doctor.delete({ where: { id } });
+      return { success: true, message: "Doctor deleted", status: 200 };
+    }
+
+    if (deleteType === "staff") {
+      await db.staff.delete({ where: { id } });
+      return { success: true, message: "Staff deleted", status: 200 };
+    }
+
+    if (deleteType === "patient") {
+      await db.patient.delete({ where: { id } });
+      return { success: true, message: "Patient deleted", status: 200 };
+    }
+
+    if (deleteType === "payment" || deleteType === "bill") {
+      await db.payment.delete({ where: { id: Number(id) } });
+      return { success: true, message: "Payment/Bill deleted", status: 200 };
+    }
+
+    if (deleteType === "medical") {
+      await db.medicalRecords.delete({ where: { id: Number(id) } });
+      return { success: true, message: "Medical record deleted", status: 200 };
     }
 
     return {
-      success: true,
-      message: "Data deleted successfully",
-      status: 200,
+      success: false,
+      message: "Unknown delete type",
+      status: 400,
     };
+
   } catch (error) {
     console.log(error);
-
     return {
       success: false,
       message: "Internal Server Error",
@@ -51,11 +67,14 @@ export async function deleteDataById(
 
 export async function createReview(values: ReviewFormValues) {
   try {
-    const validatedFields = reviewSchema.parse(values);
+    const validated = reviewSchema.parse(values);
 
     await db.rating.create({
       data: {
-        ...validatedFields,
+        patient_id: validated.patient_id,
+        doctor_id: validated.doctor_id,
+        rating: validated.rating,
+        comment: validated.comment,
       },
     });
 
@@ -65,7 +84,7 @@ export async function createReview(values: ReviewFormValues) {
       status: 200,
     };
   } catch (error) {
-    console.log(error);
+    console.log("CREATE REVIEW ERROR:", error);
 
     return {
       success: false,

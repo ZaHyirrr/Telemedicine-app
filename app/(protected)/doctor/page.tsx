@@ -11,6 +11,7 @@ import { BriefcaseBusiness, BriefcaseMedical, User, Users } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import React from "react";
+import { DoctorRatingContainer } from "@/components/doctor-rating-container";
 
 const DoctorDashboard = async () => {
   const user = await currentUser();
@@ -110,6 +111,7 @@ const DoctorDashboard = async () => {
         </div>
 
         <AvailableDoctors data={availableDoctors as any} />
+        <DoctorRatingContainer doctorId={user?.id!} />
       </div>
     </div>
   );

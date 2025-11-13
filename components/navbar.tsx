@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth, UserButton } from "@clerk/nextjs";
-import { Bell } from "lucide-react";
 import { usePathname } from "next/navigation";
 import React from "react";
 
@@ -31,14 +30,13 @@ export const Navbar = () => {
         {path || "Overview"}
       </h1>
 
+      {/* ✅ RIGHT AREA */}
       <div className="flex items-center gap-4">
-        <div className="relative">
-          <Bell />
-          <p className="absolute -top-3 right-1 size-4 bg-red-600 text-white rounded-full text-[10px] text-center">
-            2
-          </p>
-        </div>
 
+        {/* ✅ Thay Bell cũ bằng component thông báo thật */}
+
+
+        {/* ✅ Avatar Clerk */}
         {user?.userId && <UserButton />}
       </div>
     </div>
