@@ -1,5 +1,6 @@
 "use client";
 
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { useAuth, UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -35,7 +36,7 @@ export const Navbar = () => {
 
         {/* ✅ Thay Bell cũ bằng component thông báo thật */}
 
-
+        <NotificationBell/>
         {/* ✅ Avatar Clerk */}
         {user?.userId && <UserButton />}
       </div>

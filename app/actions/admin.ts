@@ -181,3 +181,24 @@ export async function createNewStaff(data: any) {
     };
   }
 }
+
+export async function addNewService(data: any) {
+  try {
+    const isValidData = ServicesSchema.safeParse(data);
+
+    const validatedData = isValidData.data;
+
+    await db.services.create({
+      data: { ...validatedData!, price: Number(data.price!) },
+    });
+
+    return {
+      success: true,
+      error: false,
+      msg: `Service added successfully`,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, msg: "Internal Server Error" };
+  }
+}

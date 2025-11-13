@@ -41,13 +41,14 @@ const RenderInput = ({ field, props }: { field: any; props: InputProps }) => {
             type={props.inputType}
             placeholder={props.placeholder}
             {...field}
+            value={field.value ?? ""}
           />
         </FormControl>
       );
 
     case "select":
       return (
-        <Select onValueChange={field.onChange} value={field?.value}>
+        <Select onValueChange={field.onChange} value={field?.value ?? ""}>
           <FormControl>
             <SelectTrigger>
               <SelectValue placeholder={props.placeholder} />
@@ -117,6 +118,7 @@ const RenderInput = ({ field, props }: { field: any; props: InputProps }) => {
             type={props.inputType}
             placeholder={props.placeholder}
             {...field}
+            value={field.value ?? ""}
           ></Textarea>
         </FormControl>
       );

@@ -4,7 +4,7 @@ import db from "@/lib/db";
 import { AppointmentSchema } from "@/lib/schema";
 import { AppointmentStatus } from "@prisma/client";
 import { VitalSignsSchema } from "@/lib/schema";
-
+import { createNotification } from "@/app/actions/notification";
 
 /**
  * ✅ CREATE NEW APPOINTMENT (SAFE)
@@ -29,11 +29,6 @@ export async function createNewAppointment(data: any) {
       return { success: false, msg: "Invalid appointment date format" };
     }
 
-    console.log("📅 Date:", appointmentDate);
-    console.log("⏰ Time:", v.time);
-    console.log("🧑‍⚕️ Doctor:", v.doctor_id);
-    console.log("🧍 Patient:", data.patient_id);
-
     /* ==============================================================
        ✅ 1. CHECK PATIENT DOUBLE BOOKING (same day + same time)
     ============================================================== */
@@ -47,7 +42,6 @@ export async function createNewAppointment(data: any) {
     });
 
     if (patientConflict) {
-      console.log("❌ Patient conflict:", patientConflict);
       return {
         success: false,
         msg: "❌ You already booked an appointment at this time.",
@@ -67,7 +61,6 @@ export async function createNewAppointment(data: any) {
     });
 
     if (doctorConflict) {
-      console.log("❌ Doctor conflict:", doctorConflict);
       return {
         success: false,
         msg: "❌ This doctor is not available at the selected time.",
@@ -88,7 +81,16 @@ export async function createNewAppointment(data: any) {
       },
     });
 
-    console.log("✅ Appointment created:", created);
+    try {
+      await createNotification({
+        userId: v.doctor_id, // Clerk doctorId
+        title: "Yêu cầu lịch hẹn mới",
+        message: `Bạn có lịch hẹn từ bệnh nhân vào lúc ${v.time} - ${appointmentDate.toLocaleDateString()}`,
+        url: `/doctor/appointments/${created.id}`,
+      });
+    } catch (err) {
+      console.error("❌ Failed to send notification to doctor:", err);
+    }
 
     return {
       success: true,
@@ -96,10 +98,7 @@ export async function createNewAppointment(data: any) {
     };
   } catch (error: any) {
     console.error("❌ CREATE APPOINTMENT ERROR:", error);
-    return {
-      success: false,
-      msg: error?.message || "Internal Server Error",
-    };
+    return { success: false, msg: error?.message || "Internal Server Error" };
   }
 }
 export async function appointmentAction(
@@ -112,14 +111,55 @@ export async function appointmentAction(
 
     const updateData: any = { status, reason };
 
-    // ✅ Tự động tạo video call link khi appointment được APPROVE
+    // 📌 Lấy appointment để biết patient_id & doctor_id
+    const appt = await db.appointment.findUnique({
+      where: { id: Number(id) },
+      include: { doctor: true, patient: true },
+    });
+
+    if (!appt) {
+      return { success: false, msg: "Appointment not found" };
+    }
+
+    /* ==============================================================
+       🔔 CASE 1 — SCHEDULED → Gửi video link + notify Patient
+    ============================================================== */
     if (status === "SCHEDULED") {
       const { generateVideoRoom } = await import("@/utils/video");
       updateData.video_link = await generateVideoRoom(Number(id));
 
       console.log("✅ Video link created:", updateData.video_link);
+
+      // 🔔 Notify patient
+      await createNotification({
+        userId: appt.patient_id,
+        title: "Lịch hẹn đã được xác nhận",
+        message: `Bác sĩ ${appt.doctor.name} đã xác nhận lịch hẹn.`,
+        url: `/patient/appointments/${appt.id}`,
+      });
+
+      // 🔔 Notify có video link
+      await createNotification({
+        userId: appt.patient_id,
+        title: "Cuộc gọi video đã sẵn sàng",
+        message: "Bấm để vào phòng khám trực tuyến.",
+        url: updateData.video_link,
+      });
     }
 
+    /* ==============================================================
+       🔔 CASE 2 — CANCELLED → Notify Patient
+    ============================================================== */
+    if (status === "CANCELLED") {
+      await createNotification({
+        userId: appt.patient_id,
+        title: "Lịch hẹn bị huỷ",
+        message: `Bác sĩ đã huỷ lịch hẹn của bạn. ${reason ? "Lý do: " + reason : ""}`,
+        url: `/patient/appointments/${appt.id}`,
+      });
+    }
+
+    // 🎯 UPDATE APPOINTMENT
     await db.appointment.update({
       where: { id: Number(id) },
       data: updateData,

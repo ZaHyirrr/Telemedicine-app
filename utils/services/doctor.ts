@@ -138,7 +138,7 @@ export async function getDoctorById(id: string) {
 export async function getRatingById(id: string) {
   try {
     const data = await db.rating.findMany({
-      where: { staff_id: id },
+      where: { doctor_id: id },
       include: {
         patient: { select: { last_name: true, first_name: true } },
       },

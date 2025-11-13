@@ -50,13 +50,6 @@ enum PaymentStatus {
   PART
 }
 
-enum PrescriptionStatus {
-  SENT // bác sĩ gửi
-  CONFIRMED // nhà thuốc xác nhận nhận đơn
-  DISPENSED // đã cấp phát
-  CANCELLED
-}
-
 model Patient {
   id                       String   @id //clerk userId
   first_name               String
@@ -315,16 +308,14 @@ model Services {
   updated_at DateTime @updatedAt
 }
 
-model Prescription {
-  id             Int                @id @default(autoincrement())
-  appointment_id Int?
-  doctor_id      String // maps to User.id
-  patient_id     String // maps to User.id
-  pharmacy_id    String? // maps to User.id (staff with dept = Pharmacy)
-  medicines      Json // [{name, dosage, qty, note}]
-  note           String?
-  status         PrescriptionStatus @default(SENT)
+model Notification {
+  id        Int      @id @default(autoincrement())
+  user_id   String   // Clerk userId
+  title     String
+  message   String
+  url       String?  // link khi click vào
+  read      Boolean  @default(false)
 
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  @@index([user_id])
 }

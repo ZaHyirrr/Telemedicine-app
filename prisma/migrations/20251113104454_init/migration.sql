@@ -1,22 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `insurance_id` on the `Patient` table. All the data in the column will be lost.
-  - You are about to drop the column `insurance_name` on the `Patient` table. All the data in the column will be lost.
-  - You are about to drop the column `phone_number` on the `Patient` table. All the data in the column will be lost.
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
-  - A unique constraint covering the columns `[email]` on the table `Patient` will be added. If there are existing duplicate values, this will fail.
-  - Added the required column `emergency_contact_name` to the `Patient` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `emergency_contact_number` to the `Patient` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `marital_status` to the `Patient` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `medical_consent` to the `Patient` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `phone` to the `Patient` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `privacy_consent` to the `Patient` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `relation` to the `Patient` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `service_consent` to the `Patient` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `updated_at` to the `Patient` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'NURSE', 'DOCTOR', 'LAB_TECHNICIAN', 'PATIENT', 'CASHIER');
 
@@ -38,31 +19,36 @@ CREATE TYPE "PaymentMethod" AS ENUM ('CASH', 'CARD');
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('PAID', 'UNPAID', 'PART');
 
--- AlterTable
-ALTER TABLE "Patient" DROP COLUMN "insurance_id",
-DROP COLUMN "insurance_name",
-DROP COLUMN "phone_number",
-ADD COLUMN     "allergies" TEXT,
-ADD COLUMN     "blood_group" TEXT,
-ADD COLUMN     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "emergency_contact_name" TEXT NOT NULL,
-ADD COLUMN     "emergency_contact_number" TEXT NOT NULL,
-ADD COLUMN     "gender" "Gender" NOT NULL DEFAULT 'MALE',
-ADD COLUMN     "img" TEXT,
-ADD COLUMN     "insurance_number" TEXT,
-ADD COLUMN     "marital_status" TEXT NOT NULL,
-ADD COLUMN     "medical_conditions" TEXT,
-ADD COLUMN     "medical_consent" BOOLEAN NOT NULL,
-ADD COLUMN     "medical_history" TEXT,
-ADD COLUMN     "phone" TEXT NOT NULL,
-ADD COLUMN     "privacy_consent" BOOLEAN NOT NULL,
-ADD COLUMN     "relation" TEXT NOT NULL,
-ADD COLUMN     "service_consent" BOOLEAN NOT NULL,
-ADD COLUMN     "updated_at" TIMESTAMP(3) NOT NULL,
-ALTER COLUMN "insurance_provider" DROP NOT NULL;
+-- CreateTable
+CREATE TABLE "Patient" (
+    "id" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "date_of_birth" TIMESTAMP(3) NOT NULL,
+    "gender" "Gender" NOT NULL DEFAULT 'MALE',
+    "phone" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "marital_status" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
+    "emergency_contact_name" TEXT NOT NULL,
+    "emergency_contact_number" TEXT NOT NULL,
+    "relation" TEXT NOT NULL,
+    "blood_group" TEXT,
+    "allergies" TEXT,
+    "medical_conditions" TEXT,
+    "medical_history" TEXT,
+    "insurance_provider" TEXT,
+    "insurance_number" TEXT,
+    "privacy_consent" BOOLEAN NOT NULL,
+    "service_consent" BOOLEAN NOT NULL,
+    "medical_consent" BOOLEAN NOT NULL,
+    "img" TEXT,
+    "colorCode" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
--- DropTable
-DROP TABLE "User";
+    CONSTRAINT "Patient_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Doctor" (
@@ -75,6 +61,7 @@ CREATE TABLE "Doctor" (
     "address" TEXT NOT NULL,
     "department" TEXT,
     "img" TEXT,
+    "colorCode" TEXT,
     "availability_status" TEXT,
     "type" "JOBTYPE" NOT NULL DEFAULT 'FULL',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -106,6 +93,7 @@ CREATE TABLE "Staff" (
     "department" TEXT,
     "img" TEXT,
     "license_number" TEXT,
+    "colorCode" TEXT,
     "role" "Role" NOT NULL,
     "status" "Status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -124,6 +112,7 @@ CREATE TABLE "Appointment" (
     "status" "AppointmentStatus" NOT NULL DEFAULT 'PENDING',
     "type" TEXT NOT NULL,
     "note" TEXT,
+    "video_link" TEXT,
     "reason" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -250,7 +239,7 @@ CREATE TABLE "AuditLog" (
 -- CreateTable
 CREATE TABLE "Rating" (
     "id" SERIAL NOT NULL,
-    "staff_id" TEXT NOT NULL,
+    "doctor_id" TEXT NOT NULL,
     "patient_id" TEXT NOT NULL,
     "rating" INTEGER NOT NULL,
     "comment" TEXT,
@@ -272,6 +261,22 @@ CREATE TABLE "Services" (
     CONSTRAINT "Services_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" SERIAL NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "url" TEXT,
+    "read" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Patient_email_key" ON "Patient"("email");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Doctor_email_key" ON "Doctor"("email");
 
@@ -285,7 +290,7 @@ CREATE UNIQUE INDEX "Payment_appointment_id_key" ON "Payment"("appointment_id");
 CREATE UNIQUE INDEX "LabTest_service_id_key" ON "LabTest"("service_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Patient_email_key" ON "Patient"("email");
+CREATE INDEX "Notification_user_id_idx" ON "Notification"("user_id");
 
 -- AddForeignKey
 ALTER TABLE "WorkingDays" ADD CONSTRAINT "WorkingDays_doctor_id_fkey" FOREIGN KEY ("doctor_id") REFERENCES "Doctor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -294,7 +299,7 @@ ALTER TABLE "WorkingDays" ADD CONSTRAINT "WorkingDays_doctor_id_fkey" FOREIGN KE
 ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_patient_id_fkey" FOREIGN KEY ("patient_id") REFERENCES "Patient"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_doctor_id_fkey" FOREIGN KEY ("doctor_id") REFERENCES "Doctor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_doctor_id_fkey" FOREIGN KEY ("doctor_id") REFERENCES "Doctor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_appointment_id_fkey" FOREIGN KEY ("appointment_id") REFERENCES "Appointment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -330,7 +335,7 @@ ALTER TABLE "Diagnosis" ADD CONSTRAINT "Diagnosis_doctor_id_fkey" FOREIGN KEY ("
 ALTER TABLE "Diagnosis" ADD CONSTRAINT "Diagnosis_medical_id_fkey" FOREIGN KEY ("medical_id") REFERENCES "MedicalRecords"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Rating" ADD CONSTRAINT "Rating_staff_id_fkey" FOREIGN KEY ("staff_id") REFERENCES "Doctor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Rating" ADD CONSTRAINT "Rating_doctor_id_fkey" FOREIGN KEY ("doctor_id") REFERENCES "Doctor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Rating" ADD CONSTRAINT "Rating_patient_id_fkey" FOREIGN KEY ("patient_id") REFERENCES "Patient"("id") ON DELETE CASCADE ON UPDATE CASCADE;

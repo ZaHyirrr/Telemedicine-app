@@ -30,9 +30,9 @@ export const AddService = () => {
   const form = useForm<z.infer<typeof ServicesSchema>>({
     resolver: zodResolver(ServicesSchema),
     defaultValues: {
-      service_name: undefined,
-      price: undefined,
-      description: undefined,
+      service_name: "",
+      price: "",
+      description: "",
     },
   });
 
