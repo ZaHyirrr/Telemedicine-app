@@ -48,11 +48,29 @@ export const MedicalHistoryCard = ({
         </div>
 
         <Separator />
+                <div>
+                    <span className="text-sm text-gray-500">
+                        Prescriptions for this patient
+                    </span>
+                    <p className="text-lg text-muted-foreground">
+                        {record.prescribed_medications}
+                    </p>
+                </div>
+
+        <Separator />
 
         <div>
           <span className="text-sm text-gray-500">Additional Note</span>
           <p className="text-lg text-muted-foreground">{record.notes}</p>
         </div>
+
+        <Separator />
+                <div>
+                    <span className="text-sm text-gray-500">Follow Up Plan</span>
+                    <p className="text-lg text-muted-foreground">
+                        {record.follow_up_plan}
+                    </p>
+                </div>
 
         <Separator />
 
