@@ -14,8 +14,12 @@ export async function deleteDataById(
   deleteType: "doctor" | "staff" | "patient" | "payment" | "bill" | "medical"
 ) {
   try {
-
-    if (deleteType === "doctor" || deleteType === "staff" || deleteType === "patient") {
+    // 1. Logic xóa Clerk User (giữ nguyên)
+    if (
+      deleteType === "doctor" ||
+      deleteType === "staff" ||
+      deleteType === "patient"
+    ) {
       await fetch(`https://api.clerk.dev/v1/users/${id}`, {
         method: "DELETE",
         headers: {
@@ -24,6 +28,7 @@ export async function deleteDataById(
       });
     }
 
+    // 2. Logic xóa bản ghi Database (đã sửa)
     if (deleteType === "doctor") {
       await db.doctor.delete({ where: { id } });
       return { success: true, message: "Doctor deleted", status: 200 };
@@ -39,10 +44,23 @@ export async function deleteDataById(
       return { success: true, message: "Patient deleted", status: 200 };
     }
 
-    if (deleteType === "payment" || deleteType === "bill") {
+    // <-- ĐÃ TÁCH VÀ SỬA LOGIC DƯỚI ĐÂY -->
+    
+    // Xóa Hóa đơn Gốc (Payment)
+    if (deleteType === "payment") {
+      // id là số nên cần Number(id)
       await db.payment.delete({ where: { id: Number(id) } });
-      return { success: true, message: "Payment/Bill deleted", status: 200 };
+      return { success: true, message: "Payment (Invoice) deleted", status: 200 };
     }
+    
+    // Xóa mục Hóa đơn Chi tiết (Bill Item/PatientBills)
+    if (deleteType === "bill") {
+      // id là số nên cần Number(id). Sử dụng model PatientBills
+      await db.patientBills.delete({ where: { id: Number(id) } });
+      return { success: true, message: "Bill item deleted", status: 200 };
+    }
+    // <-- KẾT THÚC LOGIC ĐÃ SỬA -->
+
 
     if (deleteType === "medical") {
       await db.medicalRecords.delete({ where: { id: Number(id) } });
@@ -54,12 +72,12 @@ export async function deleteDataById(
       message: "Unknown delete type",
       status: 400,
     };
-
   } catch (error) {
     console.log(error);
     return {
       success: false,
-      message: "Internal Server Error",
+      // Cập nhật thông báo để phản ánh lỗi server
+      message: "Internal Server Error or failed to delete record.", 
       status: 500,
     };
   }
