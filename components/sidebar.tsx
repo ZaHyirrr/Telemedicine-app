@@ -103,12 +103,12 @@ export const Sidebar = async () => {
           access: ["nurse"],
           icon: Users,
         },
-        {
-          name: "Administer Medications",
-          href: "/nurse/administer-medications",
-          access: ["admin", "doctor", "nurse"],
-          icon: Pill,
-        },
+      //  {
+      //    name: "Administer Medications",
+      //    href: "/nurse/administer-medications",
+      //    access: ["admin", "doctor", "nurse"],
+      //    icon: Pill,
+      //  },
         {
           name: "Appointments",
           href: "/record/appointments",
@@ -121,12 +121,12 @@ export const Sidebar = async () => {
           access: ["patient"],
           icon: List,
         },
-        {
-          name: "Prescription",
-          href: "#",
-          access: ["patient"],
-          icon: Pill,
-        },
+      //  {
+      //    name: "Prescription",
+      //    href: "#",
+      //    access: ["patient"],
+      //    icon: Pill,
+      //  },
         {
           name: "Billing",
           href: "/patient/self?cat=payments",
@@ -141,15 +141,15 @@ export const Sidebar = async () => {
         {
           name: "Notifications",
           href: "/notifications",
-          access: ACCESS_LEVELS_ALL,
+          access: ["patient","doctor", "admin"],
           icon: Bell,
         },
-        {
-          name: "Audit Logs",
-          href: "/admin/audit-logs",
-          access: ["admin"],
-          icon: Logs,
-        },
+    //    {
+    //     name: "Audit Logs",
+    //      href: "/admin/audit-logs",
+    //      access: ["admin"],
+    //      icon: Logs,
+    //    },
         {
           name: "Settings",
           href: "/admin/system-settings",

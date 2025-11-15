@@ -109,7 +109,7 @@ const PatientDashboard = async () => {
 
         <AvailableDoctors data={availableDoctor as AvailableDoctorProps} />
 
-        <PatientRatingContainer />
+        <PatientRatingContainer id={user?.id!} />
       </div>
     </div>
   );

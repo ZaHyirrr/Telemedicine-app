@@ -271,15 +271,16 @@ model Diagnosis {
 }
 
 model AuditLog {
-  id        Int     @id @default(autoincrement())
-  user_id   String
-  record_id String
-  action    String
-  details   String?
-  model     String
-
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  record_id  String
+  action     String
+  details    String?
+  model      String
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([model])
 }
 
 model Rating {
@@ -319,3 +320,5 @@ model Notification {
   created_at DateTime @default(now())
   @@index([user_id])
 }
+
+
